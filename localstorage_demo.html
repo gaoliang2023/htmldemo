@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalStorage 读写操作示例</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin: 20px 0 40px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .description {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin-bottom: 30px;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+            color: #3498db;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f1f1f1;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #34495e;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        input:focus, textarea:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        .btn-success {
+            background: #2ecc71;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #27ae60;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .storage-data {
+            background: #f9f9f9;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .storage-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .storage-item:last-child {
+            border-bottom: none;
+        }
+        
+        .key {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .value {
+            color: #7f8c8d;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .message {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 6px;
+            text-align: center;
+            display: none;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .empty-storage {
+            text-align: center;
+            color: #7f8c8d;
+            padding: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>LocalStorage 读写操作示例</h1>
+            <p class="description">使用此工具可以练习JavaScript的LocalStorage操作，包括存储、读取、删除数据以及清空整个存储库。</p>
+        </header>
+        
+        <div class="card">
+            <h2 class="card-title">存储数据</h2>
+            <div class="form-group">
+                <label for="key">键名：</label>
+                <input type="text" id="key" placeholder="输入键名">
+            </div>
+            <div class="form-group">
+                <label for="value">键值：</label>
+                <textarea id="value" placeholder="输入键值"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="saveData()">保存数据</button>
+        </div>
+        
+        <div class="card">
+            <h2 class="card-title">读取与删除数据</h2>
+            <div class="form-group">
+                <label for="readKey">输入要读取或删除的键名：</label>
+                <input type="text" id="readKey" placeholder="输入键名">
+            </div>
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="readData()">读取数据</button>
+                <button class="btn btn-danger" onclick="removeData()">删除数据</button>
+            </div>
+            <div class="storage-data">
+                <div id="readResult" class="empty-storage">读取的数据将显示在这里</div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2 class="card-title">当前存储的所有数据</h2>
+            <div class="button-group">
+                <button class="btn btn-success" onclick="refreshData()">刷新数据</button>
+                <button class="btn btn-danger" onclick="clearStorage()">清空所有数据</button>
+            </div>
+            <div class="storage-data">
+                <div id="allData" class="empty-storage">LocalStorage中暂无数据</div>
+            </div>
+        </div>
+        
+        <div id="message" class="message"></div>
+    </div>
+
+    <script>
+        // 显示消息
+        function showMessage(text, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = 'message ' + type;
+            messageEl.style.display = 'block';
+            
+            // 3秒后隐藏消息
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 3000);
+        }
+        
+        // 保存数据到LocalStorage
+        function saveData() {
+            const key = document.getElementById('key').value.trim();
+            const value = document.getElementById('value').value.trim();
+            
+            if (!key) {
+                showMessage('请输入键名', 'error');
+                return;
+            }
+            
+            try {
+                localStorage.setItem(key, value);
+                showMessage(`数据已保存: ${key} = ${value}`, 'success');
+                document.getElementById('key').value = '';
+                document.getElementById('value').value = '';
+                refreshData();
+            } catch (e) {
+                showMessage('保存失败: ' + e.message, 'error');
+            }
+        }
+        
+        // 从LocalStorage读取数据
+        function readData() {
+            const key = document.getElementById('readKey').value.trim();
+            
+            if (!key) {
+                showMessage('请输入键名', 'error');
+                return;
+            }
+            
+            const value = localStorage.getItem(key);
+            const resultEl = document.getElementById('readResult');
+            
+            if (value !== null) {
+                resultEl.innerHTML = `
+                    <div class="storage-item">
+                        <span class="key">${key}</span>
+                        <span class="value">${value}</span>
+                    </div>
+                `;
+                showMessage(`成功读取键: ${key}`, 'success');
+            } else {
+                resultEl.innerHTML = '未找到该键对应的数据';
+                showMessage(`键不存在: ${key}`, 'error');
+            }
+        }
+        
+        // 从LocalStorage删除数据
+        function removeData() {
+            const key = document.getElementById('readKey').value.trim();
+            
+            if (!key) {
+                showMessage('请输入键名', 'error');
+                return;
+            }
+            
+            if (localStorage.getItem(key) !== null) {
+                localStorage.removeItem(key);
+                document.getElementById('readResult').innerHTML = '数据已删除';
+                showMessage(`已删除键: ${key}`, 'success');
+                refreshData();
+            } else {
+                showMessage(`键不存在: ${key}`, 'error');
+            }
+        }
+        
+        // 清空LocalStorage
+        function clearStorage() {
+            if (localStorage.length === 0) {
+                showMessage('LocalStorage已经是空的', 'error');
+                return;
+            }
+            
+            if (confirm('确定要清空所有数据吗？此操作不可撤销。')) {
+                localStorage.clear();
+                showMessage('已清空所有数据', 'success');
+                refreshData();
+            }
+        }
+        
+        // 刷新显示所有数据
+        function refreshData() {
+            const allDataEl = document.getElementById('allData');
+            
+            if (localStorage.length === 0) {
+                allDataEl.innerHTML = 'LocalStorage中暂无数据';
+                allDataEl.className = 'empty-storage';
+                return;
+            }
+            
+            let html = '';
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                html += `
+                    <div class="storage-item">
+                        <span class="key">${key}</span>
+                        <span class="value">${value}</span>
+                    </div>
+                `;
+            }
+            
+            allDataEl.innerHTML = html;
+            allDataEl.className = 'storage-data';
+        }
+        
+        // 页面加载时显示所有数据
+        document.addEventListener('DOMContentLoaded', refreshData);
+    </script>
+</body>
+</html>
