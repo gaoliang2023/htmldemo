@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cookie 读写操作示例</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin: 20px 0 40px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .description {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin-bottom: 30px;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+            color: #3498db;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f1f1f1;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #34495e;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        .btn-success {
+            background: #2ecc71;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #27ae60;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .cookie-data {
+            background: #f9f9f9;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .cookie-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .cookie-item:last-child {
+            border-bottom: none;
+        }
+        
+        .key {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .value {
+            color: #7f8c8d;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .message {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 6px;
+            text-align: center;
+            display: none;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .empty-cookie {
+            text-align: center;
+            color: #7f8c8d;
+            padding: 20px;
+        }
+        
+        .expiry-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .expiry-input input {
+            width: 80px;
+        }
+        
+        @media (max-width: 768px) {
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .expiry-input {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .expiry-input input {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Cookie 读写操作示例</h1>
+            <p class="description">使用此工具可以练习JavaScript的Cookie操作，包括设置、读取、删除Cookie以及设置过期时间。</p>
+        </header>
+        
+        <div class="card">
+            <h2 class="card-title">设置Cookie</h2>
+            <div class="form-group">
+                <label for="key">名称：</label>
+                <input type="text" id="key" placeholder="输入Cookie名称">
+            </div>
+            <div class="form-group">
+                <label for="value">值：</label>
+                <textarea id="value" placeholder="输入Cookie值"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="expiry">过期时间：</label>
+                <div class="expiry-input">
+                    <input type="number" id="expiry" value="1" min="1">
+                    <select id="expiryUnit">
+                        <option value="minute">分钟</option>
+                        <option value="hour" selected>小时</option>
+                        <option value="day">天</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="setCookie()">设置Cookie</button>
+        </div>
+        
+        <div class="card">
+            <h2 class="card-title">读取与删除Cookie</h2>
+            <div class="form-group">
+                <label for="readKey">输入要读取或删除的Cookie名称：</label>
+                <input type="text" id="readKey" placeholder="输入Cookie名称">
+            </div>
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="readCookie()">读取Cookie</button>
+                <button class="btn btn-danger" onclick="deleteCookie()">删除Cookie</button>
+            </div>
+            <div class="cookie-data">
+                <div id="readResult" class="empty-cookie">读取的Cookie将显示在这里</div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2 class="card-title">当前所有Cookie</h2>
+            <div class="button-group">
+                <button class="btn btn-success" onclick="refreshCookies()">刷新Cookie列表</button>
+                <button class="btn btn-danger" onclick="clearAllCookies()">清空所有Cookie</button>
+            </div>
+            <div class="cookie-data">
+                <div id="allCookies" class="empty-cookie">当前没有Cookie</div>
+            </div>
+        </div>
+        
+        <div id="message" class="message"></div>
+    </div>
+
+    <script>
+        // 显示消息
+        function showMessage(text, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = 'message ' + type;
+            messageEl.style.display = 'block';
+            
+            // 3秒后隐藏消息
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 3000);
+        }
+        
+        // 设置Cookie
+        function setCookie() {
+            const name = document.getElementById('key').value.trim();
+            const value = document.getElementById('value').value.trim();
+            const expiryValue = parseInt(document.getElementById('expiry').value);
+            const expiryUnit = document.getElementById('expiryUnit').value;
+            
+            if (!name) {
+                showMessage('请输入Cookie名称', 'error');
+                return;
+            }
+            
+            if (!value) {
+                showMessage('请输入Cookie值', 'error');
+                return;
+            }
+            
+            if (isNaN(expiryValue) || expiryValue <= 0) {
+                showMessage('请输入有效的过期时间', 'error');
+                return;
+            }
+            
+            // 计算过期时间（毫秒）
+            let expiryMs;
+            switch(expiryUnit) {
+                case 'minute':
+                    expiryMs = expiryValue * 60 * 1000;
+                    break;
+                case 'hour':
+                    expiryMs = expiryValue * 60 * 60 * 1000;
+                    break;
+                case 'day':
+                    expiryMs = expiryValue * 24 * 60 * 60 * 1000;
+                    break;
+            }
+            
+            const expires = new Date(Date.now() + expiryMs).toUTCString();
+            
+            // 设置Cookie
+            document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
+            
+            showMessage(`Cookie已设置: ${name} = ${value}`, 'success');
+            document.getElementById('key').value = '';
+            document.getElementById('value').value = '';
+            refreshCookies();
+        }
+        
+        // 读取Cookie
+        function readCookie() {
+            const name = document.getElementById('readKey').value.trim();
+            
+            if (!name) {
+                showMessage('请输入Cookie名称', 'error');
+                return;
+            }
+            
+            const cookies = document.cookie.split(';');
+            const resultEl = document.getElementById('readResult');
+            
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // 查找名称开头的Cookie
+                if (cookie.startsWith(encodeURIComponent(name) + '=')) {
+                    const value = decodeURIComponent(cookie.substring(name.length + 1));
+                    resultEl.innerHTML = `
+                        <div class="cookie-item">
+                            <span class="key">${name}</span>
+                            <span class="value">${value}</span>
+                        </div>
+                    `;
+                    showMessage(`成功读取Cookie: ${name}`, 'success');
+                    return;
+                }
+            }
+            
+            resultEl.innerHTML = '未找到该名称对应的Cookie';
+            showMessage(`Cookie不存在: ${name}`, 'error');
+        }
+        
+        // 删除Cookie
+        function deleteCookie() {
+            const name = document.getElementById('readKey').value.trim();
+            
+            if (!name) {
+                showMessage('请输入Cookie名称', 'error');
+                return;
+            }
+            
+            // 设置过期时间为过去的时间来删除Cookie
+            document.cookie = `${encodeURIComponent(name)}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+            
+            // 检查是否删除成功
+            let exists = false;
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.startsWith(encodeURIComponent(name) + '=')) {
+                    exists = true;
+                    break;
+                }
+            }
+            
+            if (!exists) {
+                document.getElementById('readResult').innerHTML = 'Cookie已删除';
+                showMessage(`已删除Cookie: ${name}`, 'success');
+                refreshCookies();
+            } else {
+                showMessage(`删除Cookie失败: ${name}`, 'error');
+            }
+        }
+        
+        // 清空所有Cookie
+        function clearAllCookies() {
+            const cookies = document.cookie.split(';');
+            
+            if (cookies.length === 0 || (cookies.length === 1 && cookies[0] === '')) {
+                showMessage('当前没有Cookie可清除', 'error');
+                return;
+            }
+            
+            if (confirm('确定要清除所有Cookie吗？此操作不可撤销。')) {
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    const eqPos = cookie.indexOf('=');
+                    const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+                    // 设置过期时间为过去的时间来删除Cookie
+                    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+                }
+                
+                showMessage('已清除所有Cookie', 'success');
+                refreshCookies();
+            }
+        }
+        
+        // 刷新显示所有Cookie
+        function refreshCookies() {
+            const allCookiesEl = document.getElementById('allCookies');
+            const cookies = document.cookie.split(';');
+            
+            if (cookies.length === 0 || (cookies.length === 1 && cookies[0] === '')) {
+                allCookiesEl.innerHTML = '当前没有Cookie';
+                allCookiesEl.className = 'empty-cookie';
+                return;
+            }
+            
+            let html = '';
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                const eqPos = cookie.indexOf('=');
+                const name = eqPos > -1 ? decodeURIComponent(cookie.substr(0, eqPos)) : decodeURIComponent(cookie);
+                const value = eqPos > -1 ? decodeURIComponent(cookie.substr(eqPos + 1)) : '';
+                
+                html += `
+                    <div class="cookie-item">
+                        <span class="key">${name}</span>
+                        <span class="value">${value}</span>
+                    </div>
+                `;
+            }
+            
+            allCookiesEl.innerHTML = html;
+            allCookiesEl.className = 'cookie-data';
+        }
+        
+        // 页面加载时显示所有Cookie
+        document.addEventListener('DOMContentLoaded', refreshCookies);
+    </script>
+</body>
+</html>
